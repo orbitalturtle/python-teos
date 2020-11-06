@@ -757,3 +757,27 @@ def test_filter_breaches_random_data(watcher, generate_dummy_appointment):
 
     # We have "triggered" TEST_SET_SIZE/2 breaches, all of them invalid.
     assert len(valid_breaches) == 0 and len(invalid_breaches) == TEST_SET_SIZE / 2
+
+
+def test_get_subscription_info(block_processor, watcher):
+    user_sk, user_pk = generate_keypair()
+    user_id = Cryptographer.get_compressed_pk(user_pk)
+
+    # Need to simulate registration for this user.
+    watcher.gatekeeper.registered_users[user_id] = UserInfo(
+        available_slots=1, subscription_expiry=block_processor.get_block_count() + 1
+    )
+
+    message = "get subscription info"
+    signature = Cryptographer.sign(message.encode("utf-8"), user_sk)
+
+    sub_info = watcher.get_subscription_info(signature) 
+
+    assert len(sub_info.appointments) == 0
+
+    # Now let's try sending an invalid signature with the wrong message signed.
+    message = "meh"
+    signature = Cryptographer.sign(message.encode("utf-8"), user_sk)
+
+    with pytest.raises(AuthenticationFailure):
+        sub_info = watcher.get_subscription_info(signature)
