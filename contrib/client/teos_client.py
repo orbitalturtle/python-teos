@@ -40,6 +40,8 @@ def register(user_id, teos_id, teos_url):
     """
     Registers the user to the tower.
 
+    If the same user is registered a second time, 100 additional appointment slots will be added to a user's subscription and subscription_expiry will be reset.
+
     Args:
         user_id (:obj:`str`): a 33-byte hex-encoded compressed public key representing the user.
         teos_id (:obj:`str`): the tower's compressed public key.
